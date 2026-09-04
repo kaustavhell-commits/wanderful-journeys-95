@@ -588,7 +588,7 @@ function Home() {
       </section>
 
       {results && (
-        <section id="results" className="mx-auto mt-16 max-w-4xl px-5">
+        <section id="results" className="mx-auto mt-16 max-w-4xl scroll-mt-24 px-5">
           <p className="text-sm font-semibold text-accent">🎯 Your Ranked Matches</p>
           <h2 className="mt-1 text-3xl font-black tracking-tight">
             All {destinations.length} destinations scored
