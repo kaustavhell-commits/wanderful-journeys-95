@@ -155,8 +155,9 @@ function adjacentMonth(seasons: string[], month: string) {
     "Dec",
   ];
   const i = months.indexOf(month);
-  const prev = months[(i + 11) % 12];
-  const next = months[(i + 1) % 12];
+  if (i < 0) return false;
+  const prev = months[(i + 11) % 12] as string;
+  const next = months[(i + 1) % 12] as string;
   return seasons.includes(prev) || seasons.includes(next);
 }
 
