@@ -21,6 +21,11 @@ export type Scored = {
   destination: Destination;
   total: number;
   factors: Factor[];
+  plan?: {
+    day: number;
+    title: string;
+    activities: string[];
+  }[];
 };
 
 export const WEIGHTS = {
@@ -121,7 +126,28 @@ export function scoreDestination(d: Destination, p: Prefs): Scored {
   });
 
   const total = Math.round(factors.reduce((sum, f) => sum + f.weight * f.score, 0));
-  return { destination: d, total, factors };
+
+  // Generate Plan
+  const plan = [];
+  const days = Math.min(p.duration, d.durMax);
+  const attractionsPerDay = Math.ceil(d.attractions.length / days);
+  const localPerDay = Math.ceil(d.local.length / days);
+
+  for (let i = 1; i <= days; i++) {
+    const dayAttractions = d.attractions.slice((i - 1) * attractionsPerDay, i * attractionsPerDay);
+    const dayLocal = d.local.slice((i - 1) * localPerDay, i * localPerDay);
+
+    let title = i === 1 ? "Arrival & Exploration" : i === days ? "Leisure & Departure" : "Local Discovery";
+    if (days === 1) title = "Highlights Day";
+
+    plan.push({
+      day: i,
+      title,
+      activities: [...dayAttractions, ...dayLocal],
+    });
+  }
+
+  return { destination: d, total, factors, plan };
 }
 
 function neighbourCrowd(a: Crowd, b: Crowd) {

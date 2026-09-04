@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   destinations,
@@ -175,7 +175,7 @@ function ScoreBar({ value }: { value: number }) {
   );
 }
 
-function ResultCard({ result, rankIndex }: { result: Scored; rankIndex: number }) {
+function ResultCard({ result, rankIndex, prefs }: { result: Scored; rankIndex: number; prefs: Prefs }) {
   const [open, setOpen] = useState(rankIndex === 0);
   const d = result.destination;
   const v = verdict(result.total);
@@ -189,12 +189,22 @@ function ResultCard({ result, rankIndex }: { result: Scored; rankIndex: number }
           className="h-36 w-full rounded-xl object-cover sm:w-52"
         />
         <div className="flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-md bg-secondary px-2 py-0.5 text-xs font-semibold text-muted-foreground">
-              #{rankIndex + 1}
-            </span>
-            <h3 className="text-xl font-bold">{d.name}</h3>
-            <span className="text-xs text-muted-foreground">{d.region}</span>
+          <div className="flex flex-wrap items-center justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-md bg-secondary px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+                #{rankIndex + 1}
+              </span>
+              <h3 className="text-xl font-bold">{d.name}</h3>
+              <span className="text-xs text-muted-foreground">{d.region}</span>
+            </div>
+            <Link
+              to="/destination/$destinationId"
+              params={{ destinationId: d.id }}
+              search={prefs}
+              className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+            >
+              View Full Plan →
+            </Link>
           </div>
           <p className="mt-2 text-sm text-muted-foreground">{d.description}</p>
           <div className="mt-4 flex items-center gap-3">
@@ -266,6 +276,33 @@ function ResultCard({ result, rankIndex }: { result: Scored; rankIndex: number }
               <p className="mt-1 text-sm">{d.local.join(" · ")}</p>
             </div>
           </div>
+          {result.plan && (
+            <div className="mt-6 border-t border-border pt-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Recommended {result.plan.length}-Day Plan
+              </p>
+              <div className="space-y-4">
+                {result.plan.map((day) => (
+                  <div key={day.day} className="flex gap-4">
+                    <div className="flex flex-col items-center">
+                      <div className="grid size-7 place-items-center rounded-full bg-primary/20 text-[10px] font-bold text-primary">
+                        D{day.day}
+                      </div>
+                      {day.day < result.plan!.length && <div className="mt-1 w-px flex-1 bg-border" />}
+                    </div>
+                    <div className="pb-2">
+                      <p className="text-sm font-bold">{day.title}</p>
+                      <ul className="mt-1 list-inside list-disc text-xs text-muted-foreground">
+                        {day.activities.map((act, idx) => (
+                          <li key={idx}>{act}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </article>
@@ -324,27 +361,14 @@ function DestinationCard({ d }: { d: Destination }) {
           <span className="font-semibold text-foreground/80">Best Season</span>{" "}
           {d.seasons.join(" · ")}
         </div>
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          className="mt-4 self-start text-sm font-semibold text-accent hover:underline"
-        >
-          {open ? "▲ Less Details" : "▼ More Details"}
-        </button>
-        {open && (
-          <div className="mt-3 space-y-2 border-t border-border pt-3 text-sm">
-            <p>
-              <span className="font-semibold">Attractions:</span> {d.attractions.join(", ")}
-            </p>
-            <p>
-              <span className="font-semibold">Local experiences:</span> {d.local.join(", ")}
-            </p>
-            <p>
-              <span className="font-semibold">Distance from Kolkata:</span>{" "}
-              {d.distanceFromKolkata} km
-            </p>
-          </div>
-        )}
+        <div className="mt-4 flex items-center justify-between">
+          <span className="text-sm font-bold text-accent group-hover:underline">
+            View Details →
+          </span>
+          <span className="text-[10px] text-muted-foreground">
+            {d.distanceFromKolkata} km away
+          </span>
+        </div>
       </div>
     </article>
   );
@@ -600,7 +624,7 @@ function Home() {
           </p>
           <div className="mt-6 space-y-4">
             {results.map((r, i) => (
-              <ResultCard key={r.destination.id} result={r} rankIndex={i} />
+              <ResultCard key={r.destination.id} result={r} rankIndex={i} prefs={prefs} />
             ))}
           </div>
         </section>
@@ -651,7 +675,14 @@ function Home() {
 
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((d) => (
-            <DestinationCard key={d.id} d={d} />
+            <Link
+              key={d.id}
+              to="/destination/$destinationId"
+              params={{ destinationId: d.id }}
+              className="group block"
+            >
+              <DestinationCard d={d} />
+            </Link>
           ))}
         </div>
       </section>
